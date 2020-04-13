@@ -6,7 +6,7 @@ class MCF():
     def __init__(self):
         print("MCF backend initalized.")
         pass
-    
+
     def getImportancesStr(self, cellNum):
         '''
         Get a standard F8 tally importance card template. 
@@ -22,7 +22,7 @@ F8:p 2 \n\
 e8 0 1099i 11                  $ energy bins \n\
 FT8 GEB 2.00E-04 2.20E-02 0.5  $ FWHM \n\
 si1 0 8                        $ radius \n\
-"    
+"
         return self.s
 
     def F4toF8(self, fileList, setCellNum, setImportaces, F4column):
@@ -122,33 +122,30 @@ si1 0 8                        $ radius \n\
 
             axisX = _axisToMCInput(df, "Energy")
             axisY = _axisToMCInput(df, F4column)
-            
+
 
             for row, i in enumerate(axisX):
                 if row == 0:
                     file_to_write.writelines("si2 A &\n")
                 file_to_write.writelines(str(i)+"\n")
-            
+
             for row, j in enumerate(axisY):
                 if row == 0:
                     file_to_write.writelines("sp2 &\n")
                 file_to_write.writelines(str(j)+"\n")
-            
-        
+
 
             file_to_write.writelines("nps 1E8\n")
             file_to_write.writelines("print 110\n")
             print("File converted successfully.\n")
 
 
-        
+
             # Zero all counters
             starter = 0
             specRead = 0
             lineCount = 0
             spec_tab = []
-            
+
 
         file_to_write.close()
-
-

@@ -4,12 +4,12 @@ from PyQt5.QtWidgets import QApplication, QLabel, QWidget, QLineEdit, QPushButto
 from PyQt5.QtCore import QSize, pyqtSlot
 
 from MCF import MCF
-import os
 
 
 MCF = MCF()  # instance of MCF converter backend class
 
 class App(QWidget):
+    ''' Main GUI window class'''
     def __init__(self):
         super().__init__()
         self.initUI()
@@ -39,7 +39,7 @@ class App(QWidget):
 
         self.LabelImpDesc = QLabel(self)
         self.LabelImpDesc.setText("Geometry importance description:")
-        
+
         self.LabelColSelect = QLabel(self)
         self.LabelColSelect.setText("F4 column select (prompt, delayed or totat):")
 
@@ -57,15 +57,16 @@ class App(QWidget):
 
 
 
-        def _F4toF8Wrapper(self):
-            ''' 
+        def _F4toF8Wrapper():
+            '''
             Wrapper around F4toF8 converter function with QFileDialog.
             Method of MCF class.
             '''
 
             fileList = QFileDialog.getOpenFileNames()
-            
-            MCF.F4toF8(fileList, cellText, MCF.getImportancesStr(cellText), colText)
+
+            #MCF.F4toF8(fileList, cellText, MCF.getImportancesStr(cellText), colText)
+            MCF.F4toF8(fileList, cellText, ImpStr, colText)
 
         self.btn_openF4.clicked.connect(_F4toF8Wrapper)
         self.show()
