@@ -5,7 +5,7 @@ The program converts MCNP F4 average flux tally with histogram flux distribution
 
 To run the application, open Anaconda Prompt or Command Line/Terminal and type:
 
-python gui_main.py
+python main_gui.py
 
 In the application GUI window, you can select the F4 output file names to be converted to F8 input, geometry cell number, and modify importances. 
 
