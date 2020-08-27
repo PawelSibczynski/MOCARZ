@@ -2,7 +2,7 @@ import pandas as pd
 import os
 
 
-class MCF():
+class Converter():
     def __init__(self):
         print("MCF backend initalized.")
         pass

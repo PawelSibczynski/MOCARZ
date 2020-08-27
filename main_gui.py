@@ -3,10 +3,10 @@ from PyQt5.QtWidgets import QApplication, QLabel, QWidget, QLineEdit, QPushButto
                             QHBoxLayout, QVBoxLayout
 from PyQt5.QtCore import QSize, pyqtSlot
 
-from MCF import MCF
+from MCF import Converter
 
 
-MCF = MCF()  # instance of MCF converter backend class
+Converter = Converter()  # instance of MCF converter backend class
 
 class App(QWidget):
     ''' Main GUI window class'''
@@ -33,7 +33,7 @@ class App(QWidget):
         colText = self.LineEditColumnSelect.text()
 
         self.TextBoxImportances = QTextEdit(self)
-        self.TextBoxImportances.setText(MCF.getImportancesStr(cellText))
+        self.TextBoxImportances.setText(Converter.getImportancesStr(cellText))
         self.TextBoxImportances.setMinimumHeight(150)
         ImpStr = self.TextBoxImportances.toPlainText()
 
@@ -65,8 +65,7 @@ class App(QWidget):
 
             fileList = QFileDialog.getOpenFileNames()
 
-            #MCF.F4toF8(fileList, cellText, MCF.getImportancesStr(cellText), colText)
-            MCF.F4toF8(fileList, cellText, ImpStr, colText)
+            Converter.F4toF8(fileList, cellText, ImpStr, colText)
 
         self.btn_openF4.clicked.connect(_F4toF8Wrapper)
         self.show()
