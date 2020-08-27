@@ -5,6 +5,7 @@ import os
 class Converter():
     def __init__(self):
         print("MCF backend initalized.")
+        self.file_to_write = ""
         pass
 
     def getImportancesStr(self, cellNum):
@@ -47,7 +48,7 @@ si1 0 8                        $ radius \n\
                 if not os.path.exists(basepath+"/F8/"):
                     os.mkdir(basepath+"/F8/")
                     print("Folder F8 created.")
-                file_to_write = open(basepath+"/F8/"+g.replace("F4", "F8").replace('_out.o','.m'), "w")
+                file_to_write = open(basepath+"/F8/"+g.replace("F4", "F8").replace('_out.o', '.m'), "w")
             except IOError as e:
                 print("Error during creation of F8 file", e)
 
@@ -106,6 +107,8 @@ si1 0 8                        $ radius \n\
                      'Prompt', 'Prompt_err', 
                      'Delayed', 'Delayed_err', 
                      'Total', 'Total_err']]
+            
+            return df
 
 
 
@@ -148,4 +151,5 @@ si1 0 8                        $ radius \n\
             spec_tab = []
 
 
-        file_to_write.close()
+            file_to_write.close()
+

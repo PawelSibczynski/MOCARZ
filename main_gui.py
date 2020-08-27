@@ -1,10 +1,12 @@
 import sys
+import pandas as pd
 from PyQt5.QtWidgets import QApplication, QLabel, QWidget, QLineEdit, QPushButton, QTextEdit, QFileDialog, \
                             QHBoxLayout, QVBoxLayout
 from PyQt5.QtCore import QSize, pyqtSlot
 
 from MCF import Converter
 
+import matplotlib.pyplot as plt
 
 Converter = Converter()  # instance of MCF converter backend class
 
@@ -13,6 +15,7 @@ class App(QWidget):
     def __init__(self):
         super().__init__()
         self.initUI()
+        self.df = pd.DataFrame()
     
     def initUI(self):
         self.setWindowTitle("MCF - Monte Carlo n-particle F-tally output converter")
@@ -20,6 +23,7 @@ class App(QWidget):
         self.setMinimumSize(QSize(320, 240))        
         
         self.btn_openF4 = QPushButton("F4 output to F8 input", self)
+        self.btnPlotData = QPushButton("Plot F4", self)
 
         self.LabelCell = QLabel(self)
         self.LabelCell.setText("Cell selection:")
@@ -47,6 +51,7 @@ class App(QWidget):
         self.layout = QVBoxLayout(self)
         self.layout.TopToBottom
         self.layout.addWidget(self.btn_openF4)
+        self.layout.addWidget(self.btnPlotData)
         self.layout.addWidget(self.LabelCell)
         self.layout.addWidget(self.LineEditCell)
         self.layout.addWidget(self.LabelColSelect)
@@ -65,10 +70,38 @@ class App(QWidget):
 
             fileList = QFileDialog.getOpenFileNames()
 
-            Converter.F4toF8(fileList, cellText, ImpStr, colText)
+            self.df = Converter.F4toF8(fileList, cellText, ImpStr, colText)
+            print(self.df)
+
 
         self.btn_openF4.clicked.connect(_F4toF8Wrapper)
+        self.btnPlotData.clicked.connect(self.plot_data)
         self.show()
+    
+
+    def plot_data(self):
+        df = self.df
+        
+        if "Delimiter" in df.columns:
+            df = df.drop(columns=["Delimiter"])
+        
+        df = df.astype(float)
+        df['Total'] = df['Total']*1E8 # in future, allow to assume other neutron fluxes
+        print(df.info())
+        print("Total neutrons per second:", sum(df['Total']))
+
+        if not df.empty:
+        #    print(df)
+            plt.plot(df['Energy'], df['Total'])
+            plt.errorbar(df['Energy'], df['Total'], yerr=df['Total']*df['Total_err'], ecolor='Black')
+            plt.ylim(bottom=0.1)
+            plt.yscale('log')
+            plt.tight_layout()
+            plt.show()
+            
+
+        else:
+            print("Data has no values. Unable to plot.")
 
 
 if __name__ == '__main__':
