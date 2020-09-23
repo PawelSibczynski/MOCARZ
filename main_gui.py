@@ -70,8 +70,7 @@ class App(QWidget):
 
             fileList = QFileDialog.getOpenFileNames()
 
-            self.df = Converter.F4toF8(fileList, cellText, ImpStr, colText)
-            print(self.df)
+            df = Converter.F4toF8(fileList, cellText, ImpStr, colText)
 
 
         self.btn_openF4.clicked.connect(_F4toF8Wrapper)

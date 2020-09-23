@@ -93,7 +93,8 @@ si1 0 8                        $ radius \n\
 
                 if specRead == True:
                     specLineNo = specLineNo + 1
-                    if specLineNo > 3 and specLineNo < 1105:  # to do: automatically assign number of bins
+#                    if specLineNo > 3 and specLineNo < 1105:  # to do: automatically assign number of bins
+                    if specLineNo > 3 and specLineNo < 1455:  # to do: automatically assign number of bins
                         specLine = line
                         specLine.replace('\t', ' ')
                         specLine = specLine.split()
@@ -108,7 +109,8 @@ si1 0 8                        $ radius \n\
                      'Delayed', 'Delayed_err', 
                      'Total', 'Total_err']]
             
-            return df
+            print(df)
+#            return df
 
 
 
@@ -131,15 +133,19 @@ si1 0 8                        $ radius \n\
                 if row == 0:
                     file_to_write.writelines("si2 A &\n")
                 file_to_write.writelines(str(i)+"\n")
+                print(str(i))
 
             for row, j in enumerate(axisY):
                 if row == 0:
                     file_to_write.writelines("sp2 &\n")
                 file_to_write.writelines(str(j)+"\n")
+                print(str(j))
 
 
             file_to_write.writelines("nps 1E8\n")
             file_to_write.writelines("print 110\n")
+
+            print(df)
             print("File converted successfully.\n")
 
 
@@ -153,3 +159,4 @@ si1 0 8                        $ radius \n\
 
             file_to_write.close()
 
+        return df
