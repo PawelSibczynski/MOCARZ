@@ -67,7 +67,8 @@ class App(QWidget):
             Wrapper around F4toF8 converter function with QFileDialog.
             Method of MCF class.
             '''
-
+            ImpStr = self.TextBoxImportances.toPlainText()
+            print(ImpStr)
             fileList = QFileDialog.getOpenFileNames()
 
             df = Converter.F4toF8(fileList, cellText, ImpStr, colText)
