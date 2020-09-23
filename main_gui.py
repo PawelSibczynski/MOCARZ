@@ -27,10 +27,15 @@ class App(QWidget):
 
         self.LabelCell = QLabel(self)
         self.LabelCell.setText("Cell selection:")
-
         self.LineEditCell = QLineEdit(self)
         self.LineEditCell.setText(str(2))
         cellText = self.LineEditCell.text()
+
+        self.LabelNPS = QLabel(self)
+        self.LabelNPS.setText("Set number of histories:")
+        self.LineEditNPS = QLineEdit(self)
+        self.LineEditNPS.setText("1E8")
+        nps = self.LineEditNPS.text()
 
         self.LineEditColumnSelect = QLineEdit(self)
         self.LineEditColumnSelect.setText("Delayed") # you can currently chose Prompt, Delayed and Total
@@ -56,8 +61,11 @@ class App(QWidget):
         self.layout.addWidget(self.LineEditCell)
         self.layout.addWidget(self.LabelColSelect)
         self.layout.addWidget(self.LineEditColumnSelect)
+        self.layout.addWidget(self.LabelNPS)
+        self.layout.addWidget(self.LineEditNPS)
         self.layout.addWidget(self.LabelImpDesc)
         self.layout.addWidget(self.TextBoxImportances)
+
 
 
 
@@ -67,11 +75,14 @@ class App(QWidget):
             Wrapper around F4toF8 converter function with QFileDialog.
             Method of MCF class.
             '''
+            # get params from GUI after button click
+            cellText = self.LineEditCell.text()
             ImpStr = self.TextBoxImportances.toPlainText()
+            nps = self.LineEditNPS.text()
             print(ImpStr)
             fileList = QFileDialog.getOpenFileNames()
 
-            df = Converter.F4toF8(fileList, cellText, ImpStr, colText)
+            df = Converter.F4toF8(fileList, cellText, ImpStr, colText, nps)
 
 
         self.btn_openF4.clicked.connect(_F4toF8Wrapper)

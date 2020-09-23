@@ -26,7 +26,7 @@ si1 0 8                        $ radius \n\
 "
         return self.s
 
-    def F4toF8(self, fileList, setCellNum, setImportaces, F4column):
+    def F4toF8(self, fileList, setCellNum, setImportaces, F4column, nps):
         ''' read F4 tally based MCNP file content, convert it to F8 and save to new file.
         Returns F4 energy spectrum as pandas dataframe 
         fileList - a list of F4 output files to convert
@@ -34,6 +34,7 @@ si1 0 8                        $ radius \n\
         setImportances - Importances and source definition from GUI textbox. It is a basic settings,
         currently must be adapt by end user.
         F4column - an F4 spectrum distribution column output to be converted.
+        nps - number of histories to simulate in MCNP. Default 1E8.
         '''
         
         InputCode = []
@@ -75,7 +76,7 @@ si1 0 8                        $ radius \n\
                             file_to_write.writelines(InputCode)
                             break # stop writing code when you find IMPORTANCES in source code
                 
-                lineCount = lineCount + 1  
+                lineCount = lineCount + 1
 
 
             if line.__contains__("*** Importances ***"):
@@ -109,8 +110,6 @@ si1 0 8                        $ radius \n\
                      'Delayed', 'Delayed_err', 
                      'Total', 'Total_err']]
             
-            print(df)
-#            return df
 
 
 
@@ -142,7 +141,7 @@ si1 0 8                        $ radius \n\
                 print(str(j))
 
 
-            file_to_write.writelines("nps 1E8\n")
+            file_to_write.writelines("nps "+ nps +" \n")
             file_to_write.writelines("print 110\n")
 
             print(df)
