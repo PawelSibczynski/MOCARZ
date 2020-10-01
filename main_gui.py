@@ -51,7 +51,7 @@ class App(QWidget):
         self.LabelImpDesc.setText("Geometry importance description:")
 
         self.LabelColSelect = QLabel(self)
-        self.LabelColSelect.setText("F4 column select (prompt, delayed or totat):")
+        self.LabelColSelect.setText("F4 column select (type Prompt, Delayed or Total):")
 
         # layout
         self.layout = QVBoxLayout(self)
@@ -84,7 +84,7 @@ class App(QWidget):
             fileList = QFileDialog.getOpenFileNames()
 
             if fileList[1] != '':
-                df = Converter.F4toF8(fileList, cellText, ImpStr, colText, nps)
+                self.df = Converter.F4toF8(fileList, cellText, ImpStr, colText, nps)
 
 
         self.btn_openF4.clicked.connect(_F4toF8Wrapper)
@@ -98,17 +98,21 @@ class App(QWidget):
         if "Delimiter" in df.columns:
             df = df.drop(columns=["Delimiter"])
         
-        df = df.astype(float)
-        df['Total'] = df['Total']*1E8 # in future, allow to assume other neutron fluxes
-        print(df.info())
-        print("Total neutrons per second:", sum(df['Total']))
-
         if not df.empty:
+            df = df.astype(float)
+            data_to_plot = df[self.LineEditColumnSelect.text()]
+            data_err_column = df[self.LineEditColumnSelect.text()+'_err']
+            data_to_plot = data_to_plot*1E8 # in future, allow to assume other neutron fluxes
+            print(df.info())
+            print("Total particles per second:", sum(data_to_plot))
+
+#        if not df.empty:
         #    print(df)
-            plt.plot(df['Energy'], df['Total'])
-            plt.errorbar(df['Energy'], df['Total'], yerr=df['Total']*df['Total_err'], ecolor='Black')
+            plt.plot(df['Energy'], data_to_plot)
+            plt.errorbar(df['Energy'], data_to_plot, yerr=data_to_plot*data_err_column, ecolor='Black')
             plt.ylim(bottom=0.1)
             plt.yscale('log')
+            plt.legend()
             plt.tight_layout()
             plt.show()
             
