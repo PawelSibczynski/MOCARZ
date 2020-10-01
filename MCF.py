@@ -94,20 +94,33 @@ si1 0 8                        $ radius \n\
 
                 if specRead == True:
                     specLineNo = specLineNo + 1
-#                    if specLineNo > 3 and specLineNo < 1105:  # to do: automatically assign number of bins
-                    if specLineNo > 3 and specLineNo < 1455:  # to do: automatically assign number of bins
+                    # warning - here the number of bins must be assigned manually
+                    '''
+                    if specLineNo > 3 and specLineNo < 1105:  # to do: automatically assign number of bins
+#                    if specLineNo > 3 and specLineNo < 1455:  # to do: automatically assign number of bins
                         specLine = line
                         specLine.replace('\t', ' ')
                         specLine = specLine.split()
                         spec_tab.append(specLine)
+                    '''
+                    if specLineNo > 3:  # to do: automatically assign number of bins
+                        if 'total' in line:
+                            break
+                        else:
+#                    if specLineNo > 3 and specLineNo < 1455:  # to do: automatically assign number of bins
+                            specLine = line
+                            specLine.replace('\t', ' ')
+                            specLine = specLine.split()
+                            spec_tab.append(specLine)
+                        
 
 
 
             df = pd.DataFrame(spec_tab, columns=['Energy', 'Prompt', 'Prompt_err', 'Delayed', 'Delayed_err', 'Total', 'Total_err'])
             df["Delimiter"] = '&'
-            df = df[['Energy', 'Delimiter', 
-                     'Prompt', 'Prompt_err', 
-                     'Delayed', 'Delayed_err', 
+            df = df[['Energy', 'Delimiter',
+                     'Prompt', 'Prompt_err',
+                     'Delayed', 'Delayed_err',
                      'Total', 'Total_err']]
             
 

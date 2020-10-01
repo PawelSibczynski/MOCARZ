@@ -3,10 +3,11 @@ import pandas as pd
 from PyQt5.QtWidgets import QApplication, QLabel, QWidget, QLineEdit, QPushButton, QTextEdit, QFileDialog, \
                             QHBoxLayout, QVBoxLayout
 from PyQt5.QtCore import QSize, pyqtSlot
+import matplotlib.pyplot as plt
 
 from MCF import Converter
 
-import matplotlib.pyplot as plt
+
 
 Converter = Converter()  # instance of MCF converter backend class
 
@@ -18,7 +19,7 @@ class App(QWidget):
         self.df = pd.DataFrame()
     
     def initUI(self):
-        self.setWindowTitle("MCF - Monte Carlo n-particle F-tally output converter")
+        self.setWindowTitle("MCF - Monte Carlo n-particle F-tally output converter.")
         self.setGeometry(200, 200, 500, 500)
         self.setMinimumSize(QSize(320, 240))        
         
@@ -82,7 +83,8 @@ class App(QWidget):
             print(ImpStr)
             fileList = QFileDialog.getOpenFileNames()
 
-            df = Converter.F4toF8(fileList, cellText, ImpStr, colText, nps)
+            if fileList[1] != '':
+                df = Converter.F4toF8(fileList, cellText, ImpStr, colText, nps)
 
 
         self.btn_openF4.clicked.connect(_F4toF8Wrapper)
