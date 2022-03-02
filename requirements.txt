@@ -1,5 +1,7 @@
 PySide2
-pandas == 1.4.1
+pandas = 1.4.1
 numpy
 matplotlib
 peakutils
+scipy
+scikit-learn
