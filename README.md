@@ -9,8 +9,8 @@ The tool also perform gaussian fitting for a MCNP F8 pulse height spectra.
 # Required libraries
 Install Python version 3.9 (suggested).
 
-Windows: install from Microsoft Store (the fastest way). Advanced users can also install Pyt
-Linux: sudo apt install python3.9
+Windows: install from Microsoft Store (the fastest way). Advanced users can also download Python from web and install manually.
+Linux: type _sudo apt install python3.9_
 
 To verify installation, type in terminal: python --version
 
