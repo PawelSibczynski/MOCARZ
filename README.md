@@ -9,11 +9,11 @@ python main_gui.py
 
 In the application GUI window, you can select the F4 output file names to be converted to F8 input, geometry cell number, and modify importances. 
 
-Your F4 input (from which you receive F4 output) structe must follow the schema below (respectively):
+Your F4 and F8 input structe must follow the schema below (order is extremely important):
 1. cells definition
 2. surfaces definition
 3. materials definition
-4. *** Importances ***  (written exactly like this just after materials definition)
+4. *** Importances ***  (written exactly like this just after materials definition to be detected by software)
 
 
 

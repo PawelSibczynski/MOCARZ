@@ -1,0 +1,1 @@
+uic.exe GUI_qt5_design.ui  > GUI_qt5_design.py
