@@ -1,5 +1,5 @@
-# MCF
-MCF - MOnte CARlo analyZer
+# MOCARZ
+MOCARZ- MOnte CARlo analyZer
 
 The program converts MCNP F4 average flux tally with histogram flux distribution for a single selected cell to F8 pulse height tally input used for further spectra processing - gaussian broadening and detection efficiency in a cell volume.
 
