@@ -21,7 +21,9 @@ pip install -U requirements.txt
 # How to run
 To run the application, open Anaconda Prompt or Command Line/Terminal and type:
 
-python main_gui.py
+python GUI_main.py
+
+You will see a GUI interface.
 
 In the application GUI window, you can select the F4 output file names to be converted to F8 input, geometry cell number, and modify importances. 
 
