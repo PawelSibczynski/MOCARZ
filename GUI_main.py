@@ -3,9 +3,12 @@ import sys
 # import numpy as np
 # import time
 # import pyqtgraph as pg
-from PySide2 import QtCore, QtGui, QtWidgets
+from PySide2 import QtGui, QtWidgets
 # from PySide2.QtWidgets import QMainWindow, QWidget, QApplication, QGridLayout,QVBoxLayout #QMainWindow do obsługi okna
-from PySide2.QtWidgets import (QApplication, QMainWindow, QFileDialog)
+from PySide2.QtWidgets import (QApplication, QMainWindow, QWidget, QPushButton, QLabel, QLineEdit, QTextEdit,
+                               QFileDialog, QTabWidget, QTableWidget, QTableWidgetItem, QProgressBar, QVBoxLayout, 
+                               QGridLayout
+                               )
 from PySide2.QtUiTools import QUiLoader
 #from GUI_qt5_design import Ui_GUI_main
 from mcnp_tgsa import My_Files   
@@ -20,6 +23,8 @@ from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
 from matplotlib.figure import Figure
 import matplotlib.pyplot as plt
 import random
+import pandas as pd
+import global_functions as GF
 
 # http://pyqt.sourceforge.net/Docs/PyQt5/designer.html
 # https://www.learnpyqt.com/tutorials/pyqt5-vs-pyside2/
@@ -35,26 +40,10 @@ loader = QUiLoader()
 
 class PlotCanvas(FigureCanvas):
     def __init__(self, parent=None, width=0.1, height=0.1, dpi=100):
-   #     input_file_name = None
-#        fig = Figure(figsize=(width, height), dpi=dpi)
-        # fig = Figure(figsize=(1, 1), dpi=dpi)
-        # self.axes = fig.add_subplot(111)
 
-        # FigureCanvas.__init__(self, fig)
         self.setParent(parent)
-
-
-      #  FigureCanvas.setSizePolicy(self,
-      #          QSizePolicy.Expanding,
-      #          QSizePolicy.Expanding)
-     #   FigureCanvas.updateGeometry(self)
-
-
-#        self.PLOT(input_file_name)  # to do
         self.PLOT()
 
-
-#    def PLOT(self, input_file_name): # to do
     
     def PLOT(self):
         data = [random.random() for i in range(25)]
@@ -127,33 +116,132 @@ class App(QMainWindow): #QMainWindow
         super().__init__()
         self.left = 10
         self.top = 10
-        self.title = 'MOCARZ - MOnte CARlo analyZer v0.1'
-        self.width = 640
-        self.height = 400
+        self.title = 'MOCARZ - MOnte CARlo analyZer v0.11'
+        self.width = 1024
+        self.height = 768
         self.initUI()
+        # self.show()
         self.dataProcessing = My_Files()
+
+
 
     def initUI(self):
         ''' Show the main window and connect events '''
-        self.window = loader.load("GUI_qt5_design.ui", None)
-        self.window.progressBar.setValue(0)
+        # self.window = QWidget() #  loader.load("GUI_qt5_design.ui", None)
+        #grid = QtGui.QGridLayout(self.window)
+        # self.window.setLayout(grid)
 
-        # self.window.OpenFileDialog1_btn.clicked.connect(lambda: print("clicked")) # fajny patent
-        self.window.OpenFileDialog1_btn.clicked.connect(self.AnalyzeF8)
-        self.window.OpenFileDialog2_btn.clicked.connect(self.AnalyzeF4)
 
-        availableWidgets = loader.availableWidgets()
-        print(availableWidgets)
+        self.peaks_db = pd.read_json('peak_data.json')
 
-        if not self.window:
-            print(loader.errorString())
-            sys.exit(-1)
-        self.window.show()
+        print(self.peaks_db)
+
+        self.setWindowTitle(self.title)
+        self.setFixedWidth(self.width)
+        self.setFixedHeight(self.height)
+
+        central_widget = QWidget()
+
+        # layout = QVBoxLayout()
+
+        # grid definition
+        grid = QGridLayout()
+        vlayout1 = QVBoxLayout()
+
+        # tabs definition
+        tab1 = QWidget()
+        tab2 = QWidget()
+        
+        ###
+        # tab 1 widgets
+        ###
+        progressBar = QProgressBar()
+        btn_read_F4_data = QPushButton('Read F4 data')
+        btn_read_F8_data = QPushButton('Read F8 data')
+        btn_read_F4xF8_data = QPushButton('Read F4 integral and multiply F8')
+        lbl_cell = QLabel('Cell number.')
+        ln_cell = QLineEdit('2')
+        lbl_particle_count = QLabel('Particle multiplication.')
+        ln_particle_count = QLineEdit('1E8*100')
+        lbl_data_column = QLabel('Data column selection')
+        ln_data_column = QLineEdit('5')
+        lbl_f4_integral = QLabel('F4 Integral.')
+        ln_f4_integral = QLineEdit('1')
+        ln_log = QTextEdit('Info logger')
+        
+        ###
+        # tab 2 widgets
+        ###
+        self.table = QTableWidget()
+        self.table.setColumnCount(len(self.peaks_db.columns))
+        self.table.setHorizontalHeaderLabels(self.peaks_db.keys())
+        self.table.setRowCount(len(self.peaks_db))
+
+        # add data to QTableWidget
+        
+        for row in self.peaks_db.itertuples(): # row iterator
+            for item in range(len(self.peaks_db.columns)): # iteration over columns (as integer position)
+                self.table.setItem(row[0], item, QTableWidgetItem(str(row[item+1])))
+        
+        # GF.insert_data_to_table(self.peaks_db, self.table) # to debug
+            
+
+        # tabs and layouts
+        tab_widget = QTabWidget()
+
+        # add element to grid
+        grid.addWidget(btn_read_F4_data, 0, 0, 1, 1)
+        grid.addWidget(btn_read_F8_data, 1, 0, 1, 1)
+        grid.addWidget(btn_read_F4xF8_data, 2, 0, 1, 1)
+        grid.addWidget(lbl_cell, 3, 1, 1, 1)
+        grid.addWidget(ln_cell, 3, 0, 1, 1)
+        grid.addWidget(lbl_particle_count, 4, 1, 1, 1)
+        grid.addWidget(ln_particle_count, 4, 0, 1, 1)
+        grid.addWidget(lbl_data_column, 5, 1, 1, 1)
+        grid.addWidget(ln_data_column, 5, 0, 1, 1)
+        grid.addWidget(lbl_f4_integral, 6, 1, 1, 1)
+        grid.addWidget(ln_f4_integral, 6, 0, 1, 1)
+        grid.addWidget(ln_log, 0, 2, 5, 1)
+        grid.addWidget(progressBar, 8, 0, 1, 3) # row,column, row span, column span
+        # central_widget.setLayout(grid)
+        
+
+        vlayout1.addWidget(self.table)
+        tab1.setLayout(grid)
+        tab2.setLayout(vlayout1)
+
+        tab_widget.addTab(tab1, "Data processing")
+        tab_widget.addTab(tab2, 'Peaks management')
+
+        # self.window.OpenFileDialog1_btn.clicked.connect(lambda: print("clicked"))
+
+        btn_read_F8_data.clicked.connect(self.AnalyzeF8)
+        btn_read_F4_data.clicked.connect(self.AnalyzeF4)
+        #self.window.OpenFileDialog2_btn.clicked.connect(self.AnalyzeF4) # obsolete 
+
+        progressBar.setValue(0)
+
+
+        #availableWidgets = loader.availableWidgets()
+        #print(availableWidgets)
+
+        #if not self.window:
+            # print(loader.errorString())
+        #    sys.exit(-1)
+        # self.setCentralWidget(central_widget)
+        self.setCentralWidget(tab_widget)
+        print('Start application')
+        # self.window.show()
+
 
 
     #
     # interaction methods
     # 
+
+
+
+    
 
     # progressbar
     def PROGRESS(self, no_of_files):
@@ -176,9 +264,9 @@ class App(QMainWindow): #QMainWindow
             print(f)
             self.PROGRESS(no_of_files/len(files)*100)
             no_of_files = no_of_files + 1
-            self.dataProcessing.Analyse_File_F8(f, cell_name=self.window.lineEdit.text(),
-                                                   source_rate=self.window.lineEdit_3.text(),
-                                                   f4_integral=float(self.window.lineEdit_4.text()))
+            self.dataProcessing.Analyse_File_F8(f, cell_name=self.window.ln_cell.text(),
+                                                   source_rate=self.window.ln_particle_count.text(),
+                                                   f4_integral=float(self.window.ln_f4_integral.text()))
 
     def AnalyzeF4(self):
         print("New function analysing F4")
@@ -192,9 +280,9 @@ class App(QMainWindow): #QMainWindow
             print(f)
             self.PROGRESS(no_of_files/len(files)*100)
             no_of_files = no_of_files + 1
-            self.dataProcessing.Analyse_File_F4(f, cell_name=self.window.lineEdit.text(),
-                                        source_rate=self.window.lineEdit_3.text(),
-                                        data_column=float(self.window.lineEdit_2.text()))
+            self.dataProcessing.Analyse_File_F4(f, cell_name=self.window.ln_cell.text(),
+                                        source_rate=self.window.ln_particle_count.text(),
+                                        data_column=float(self.window.ln_data_column.text()))
 
 
     def OpenFileDialog(self):
@@ -210,10 +298,11 @@ class App(QMainWindow): #QMainWindow
 
 
 if __name__ == "__main__":
-    APP = QtWidgets.QApplication(sys.argv) # QtWidgets importuje, nie trzeba jego wpisywać
+    
+    APP = QApplication(sys.argv)
 
     ex = App()
-
+    ex.show()
 
     # GUI_MAIN = QtWidgets.QWidget()
     # UI = Interactions()
@@ -227,4 +316,5 @@ if __name__ == "__main__":
     #LAYOUT_EXTENDED.addWidget(PLOT_CANV)
     ### ---
     # GUI_MAIN.show()
-    sys.exit(APP.exec_())
+    # sys.exit(APP.exec_())
+    APP.exec_()
