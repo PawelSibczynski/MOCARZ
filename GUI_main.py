@@ -3,12 +3,13 @@ import sys
 # import numpy as np
 # import time
 # import pyqtgraph as pg
-from PySide2 import QtGui, QtWidgets
+# from PySide2 import QtGui, QtWidgets
 # from PySide2.QtWidgets import QMainWindow, QWidget, QApplication, QGridLayout,QVBoxLayout #QMainWindow do obsługi okna
 from PySide2.QtWidgets import (QApplication, QMainWindow, QWidget, QPushButton, QLabel, QLineEdit, QTextEdit,
                                QFileDialog, QTabWidget, QTableWidget, QTableWidgetItem, QProgressBar, QVBoxLayout, 
                                QGridLayout
                                )
+from PySide2.QtGui import QPalette, QColor
 from PySide2.QtUiTools import QUiLoader
 #from GUI_qt5_design import Ui_GUI_main
 from mcnp_tgsa import My_Files   
@@ -37,6 +38,18 @@ import global_functions as GF
 # from GUI_qt5_design import *
 
 loader = QUiLoader()
+
+
+class Color(QWidget):
+
+    def __init__(self, color):
+        super(Color, self).__init__()
+        self.setAutoFillBackground(True)
+
+        palette = self.palette()
+        palette.setColor(QPalette.Window, QColor(color))
+        self.setPalette(palette)
+
 
 class PlotCanvas(FigureCanvas):
     def __init__(self, parent=None, width=0.1, height=0.1, dpi=100):
@@ -155,18 +168,18 @@ class App(QMainWindow): #QMainWindow
         ###
         # tab 1 widgets
         ###
-        progressBar = QProgressBar()
+        self.progressBar = QProgressBar()
         btn_read_F4_data = QPushButton('Read F4 data')
         btn_read_F8_data = QPushButton('Read F8 data')
         btn_read_F4xF8_data = QPushButton('Read F4 integral and multiply F8')
         lbl_cell = QLabel('Cell number.')
-        ln_cell = QLineEdit('2')
+        self.ln_cell = QLineEdit('2')
         lbl_particle_count = QLabel('Particle multiplication.')
-        ln_particle_count = QLineEdit('1E8*100')
+        self.ln_particle_count = QLineEdit('1E8*100')
         lbl_data_column = QLabel('Data column selection')
         ln_data_column = QLineEdit('5')
         lbl_f4_integral = QLabel('F4 Integral.')
-        ln_f4_integral = QLineEdit('1')
+        self.ln_f4_integral = QLineEdit('1')
         ln_log = QTextEdit('Info logger')
         
         ###
@@ -189,8 +202,30 @@ class App(QMainWindow): #QMainWindow
         # tabs and layouts
         tab_widget = QTabWidget()
 
+        # layout with buttons running functions
+        lyot_btns = QVBoxLayout()
+        lyot_btns.addWidget(btn_read_F4_data)
+        lyot_btns.addWidget(btn_read_F8_data)
+        lyot_btns.addWidget(btn_read_F4xF8_data)
+
+        # layout with settings used for MCNP file processing
+        lyot_settings = QVBoxLayout()
+        lyot_settings.addWidget(lbl_cell)
+        lyot_settings.addWidget(self.ln_cell)
+        lyot_settings.addWidget(lbl_particle_count)
+        lyot_settings.addWidget(self.ln_particle_count)
+        lyot_settings.addWidget(lbl_data_column)
+        lyot_settings.addWidget(ln_data_column)
+        lyot_settings.addWidget(lbl_f4_integral)
+        lyot_settings.addWidget(self.ln_f4_integral)
+
         # add element to grid
+        grid.addLayout(lyot_btns, 0, 0, 1, 1)
+        grid.addLayout(lyot_settings, 2, 0, 1, 1)
+        """
+        grid.addWidget(Color('blue'), 0, 0, 1, 1)
         grid.addWidget(btn_read_F4_data, 0, 0, 1, 1)
+        grid.addWidget(Color('green'), 1, 0, 1, 1)
         grid.addWidget(btn_read_F8_data, 1, 0, 1, 1)
         grid.addWidget(btn_read_F4xF8_data, 2, 0, 1, 1)
         grid.addWidget(lbl_cell, 3, 1, 1, 1)
@@ -201,8 +236,9 @@ class App(QMainWindow): #QMainWindow
         grid.addWidget(ln_data_column, 5, 0, 1, 1)
         grid.addWidget(lbl_f4_integral, 6, 1, 1, 1)
         grid.addWidget(ln_f4_integral, 6, 0, 1, 1)
-        grid.addWidget(ln_log, 0, 2, 5, 1)
-        grid.addWidget(progressBar, 8, 0, 1, 3) # row,column, row span, column span
+        """
+        grid.addWidget(ln_log, 0, 2, 4, 1)
+        grid.addWidget(self.progressBar, 8, 0, 1, 3) # row,column, row span, column span
         # central_widget.setLayout(grid)
         
 
@@ -219,7 +255,7 @@ class App(QMainWindow): #QMainWindow
         btn_read_F4_data.clicked.connect(self.AnalyzeF4)
         #self.window.OpenFileDialog2_btn.clicked.connect(self.AnalyzeF4) # obsolete 
 
-        progressBar.setValue(0)
+        self.progressBar.setValue(0)
 
 
         #availableWidgets = loader.availableWidgets()
@@ -249,7 +285,7 @@ class App(QMainWindow): #QMainWindow
 
         while completed < no_of_files:
             completed += 1
-            self.window.progressBar.setValue(completed)
+            self.progressBar.setValue(completed)
 
 
     def AnalyzeF8(self):
@@ -264,9 +300,9 @@ class App(QMainWindow): #QMainWindow
             print(f)
             self.PROGRESS(no_of_files/len(files)*100)
             no_of_files = no_of_files + 1
-            self.dataProcessing.Analyse_File_F8(f, cell_name=self.window.ln_cell.text(),
-                                                   source_rate=self.window.ln_particle_count.text(),
-                                                   f4_integral=float(self.window.ln_f4_integral.text()))
+            self.dataProcessing.Analyse_File_F8(f, cell_name=self.ln_cell.text(),
+                                                   source_rate=self.ln_particle_count.text(),
+                                                   f4_integral=float(self.ln_f4_integral.text()))
 
     def AnalyzeF4(self):
         print("New function analysing F4")
@@ -291,8 +327,8 @@ class App(QMainWindow): #QMainWindow
         list_of_files, _ = QFileDialog.getOpenFileNames(None, "QFileDialog.getOpenFileNames()", "", "Output files (*.o);;All Files (*)", options=options)
         print(list_of_files)
         
-        for i in list_of_files:
-            self.window.listWidget.addItem(i)
+        #for i in list_of_files:
+        #    self.listWidget.addItem(i)
         
         return list_of_files
 

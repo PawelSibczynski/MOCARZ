@@ -24,6 +24,7 @@ from scipy.optimize import curve_fit
 from numpy import trapz
 import peakutils as pk
 from math_mcnp import Gauss_fitting   # import mathemathics from my separately created file
+# from GUI_main import Interactions # nie działa
 
 #----
 #---- Constant parameters
@@ -87,28 +88,16 @@ spread_N = 15
 
 class My_Files(Gauss_fitting):
     def __init__(self):
-        self.df_store_data = pd.DataFrame()
+        pass
 
     def RAW_DATA_SELECT(self, listoffiles):
         data = 1
         return data
     
-    def read_json_peak_data(self):
-        try:
-            df = pd.read_json('peak_data.json')
-            df['Element_index'] = df['Element'] + '_' + df['Peak'].astype(str)
-            df = df.set_index('Element_index')
-            print(df)
-            return df
-        except FileNotFoundError as e:
-            print('JSON data file was not found!', e)
-            return
-        except:
-            print('Other error when loading peak_data.json file.')
-            return
-
-    def fit_gaussian_peak(self, peak_energy, left_marker, right_marker):
-        pass
+    def read_json(self):
+        df = pd.read_json('peak_data.json')
+        print(df)
+        return df
 
 #    def Open_file_F8(self, cell_name):
     def Open_file_F8(self):     # działa z PyQT5
@@ -152,10 +141,6 @@ class My_Files(Gauss_fitting):
 
     def Analyse_File_F8(self, file_path, cell_name, source_rate='1E8*1', f4_integral=1):
         c = My_Files() #instancja klasy My_Files
-        df_peak_data = self.read_json_peak_data()
-        print(df_peak_data)
-
-
         # cell_name = self.Window.lineEdit.text() #self.LINE_EDIT_CELL()   # pobiera tekst z textboxa
         # w funkcji stworzyłem instancję klasy wewnątrz tej samej klasy, po to
         # aby zaimportować metodę tej klasy do tej metody
@@ -242,7 +227,7 @@ class My_Files(Gauss_fitting):
 
         line_no = 0  # previously 0  -  this is start line in output file
         for line in dataset:
-            if 'cell  '+str(cell_name) in line:
+            if 'cell  ' + str(cell_name) in line:
                 start_line = line_no
                 new_output_list = []
                 log_data = []
@@ -314,8 +299,6 @@ class My_Files(Gauss_fitting):
         # plt.show()
 
 
-        for e in df_peak_data.index:
-            print(e)
            
         # ----- BEGIN PROMPT
         for i in np.arange(1): # wpisz tu później 3

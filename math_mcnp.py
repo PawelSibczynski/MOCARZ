@@ -16,13 +16,13 @@ class Gauss_fitting:
         line_no = 0
         for line in dataset:
             line_no += 1
-            if cell__name in line:
+            if "cell  " + str(cell__name) in line:
                 for line in dataset[line_no:]:
                     bins_number += 1
                     if not 'time' in line:
                         if 'total' in line:
                             print(str(bins_number-3)) # minus trzy wiersze z wyrazeniem energy, time and total
-                            return(bins_number-3)
+                            return(bins_number-3) # return value, do not loop for lines after total statement
 
 
     def SR_CONVERT(self, input_sr_str):
