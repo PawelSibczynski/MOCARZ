@@ -100,8 +100,8 @@ class My_Files(Gauss_fitting):
             df = df.set_index('Element_index')
             print(df)
             return df
-        except FileNotFoundError as e:
-            print('JSON data file was not found!', e)
+        except FileNotFoundError as E:
+            print('JSON data file was not found!', E)
             return
         except:
             print('Other error when loading peak_data.json file.')
@@ -145,13 +145,397 @@ class My_Files(Gauss_fitting):
     # ------------ analyse files ---------------
     # ------------------------------------------
 
-
     # ------------------------------
     #  --- PULSE HEIGHT ANALYSIS ---
     # ------------------------------
 
     def Analyse_File_F8(self, file_path, cell_name, source_rate='1E8*1', f4_integral=1):
-        c = My_Files() #instancja klasy My_Files
+        # c = My_Files() #instancja klasy My_Files
+        df_peak_data = self.read_json_peak_data()
+        print(df_peak_data)
+
+
+        # cell_name = self.Window.lineEdit.text() #self.LINE_EDIT_CELL()   # pobiera tekst z textboxa
+        # w funkcji stworzyłem instancję klasy wewnątrz tej samej klasy, po to
+        # aby zaimportować metodę tej klasy do tej metody
+        #source_rate = self.SET_SOURCE_RATE()
+        #f4_integral = self.GET_F4_INTEGRAL()
+        source_rate = Gauss_fitting.SR_CONVERT(self, source_rate) * f4_integral
+        line_no = 0
+        
+
+        #listoffiles = c.Open_file_F8() # listoffiles = self.Open_file_F8 - tak było wcześniej
+
+        # max_file = len(listoffiles)
+
+        energy = []
+        counts = []
+
+#        global header_text
+#        header_text = "test headrr"
+
+#        listoffiles = filedialog.askopenfilenames()
+        # initial directory
+        #file_path = 0
+     
+        log_output_data = 0
+        log_output_data_str = 0
+        i = 0
+        j = 0
+
+        no_of_files = 1
+        #for m in listoffiles:
+#        try:
+        # self.PROGRESS(no_of_files/max_file*100) # to działa! Ponieważ przez self dostajesz się do poziomu nadrzędnego.
+        # Ważne: w klasie interactions masz klasę Analyse_File_F8 z self,
+        # które daje Tobie możiwość nawiązania kontaktu miedyz tymi obiktami
+        #no_of_files += 1
+        
+#        self.progress()  # progress po analizowanej zawartości pliku. A ja chcę po liście plików!
+        # file_path = m
+        file_name = os.path.basename(file_path)
+        print(file_name)
+        
+
+        directory_path = os.path.dirname(file_path)
+
+        #   READ MCNP FILE
+        f = open(file_path, "r")
+
+        output_file_name = file_name.replace(".o", "_") + "_sorted_" + str(cell_name.replace("  ", "__")) + ".out"
+        output_file_destination = directory_path + "/" + output_file_name
+
+        
+
+#           --- bins calculation ---
+        dataset = f.readlines()
+        bins_total = Gauss_fitting.bin_calculator(self, dataset, cell_name)
+        print("Bins total: " + str(bins_total))
+#           ------------------------
+
+        #   WRITE OUTPUT FROM MCNP
+        g = open(output_file_destination, "w")
+        #            g.write(header_text)
+
+        # read number of header lines
+        # with open(output_file_destination) as out:
+        #    for header_line_no, l in enumerate(out):
+        #        pass
+        #    header_line_no = header_line_no + 1
+
+        #    input_file = file.read(open_input_file)
+
+        #            g.write("test"+"\n")  # dziala
+#           g.write(self.header_description.get("1.0", END))
+#           header_line_count = int(self.header_description.index('end-1c').split('.')[0])  # returns line count
+        # print(header_line_count)
+
+
+
+#          bins_total = Gauss_fitting.bin_calculator(f, cell_name)
+
+        # aid_file.write(aid_header)
+
+#        for line in f:
+        print(dataset)
+
+        line_no = 0  # previously 0  -  this is start line in output file
+        for line in dataset:
+            if 'cell  '+str(cell_name) in line:
+                start_line = line_no
+                new_output_list = []
+                log_data = []
+
+                output_data = dataset[start_line + 2:start_line + bins_total + 2]
+
+                print(output_data)
+
+                for line in output_data:
+                    print(line)
+                    new_output_list.append([float(elem) for elem in line.split()])
+                    
+                data_array = np.asarray(new_output_list)
+
+            #       print(new_array)
+                print(output_data[bins_total-1])
+
+                for i in range(bins_total):
+                    val = new_output_list[i][1]  # dostęp do elementu listy w liście 
+                    if val == 0: #'0.00000E+00':
+                        log_data.append(1E-10)
+                    else:
+                        log_data.append(val)
+                    
+
+                data_array_log = np.column_stack((data_array[:, 0], data_array[:, 1], log_data, data_array[:, 2]))
+                print(data_array_log) # works well
+
+                df = pd.DataFrame(data_array_log, columns=['E (MeV)', 'Counts', 'Counts(log)', 'Error(%)'])
+                df = df.astype(float)
+                print(df.values)
+
+
+                # g.write(str(output_data[0]) + "  " + str(output_data[1]) + " " + str(log_output_data_str) + " " + str(output_data[2]) + " " + "\n")
+                
+                # data_sqrt = np.sqrt(float(output_data[1])*source_rate)
+
+
+
+
+                np.savetxt(output_file_destination, df.values, fmt='%1.8f')
+
+            line_no = line_no + 1
+            
+        f.close()
+        g.close()
+
+        print('Columns type: int, float, float')
+
+
+        ############################################
+        ### Peak fitting & visualization process ###
+        ############################################
+
+        energy, counts = np.loadtxt(output_file_destination, skiprows=0, usecols=(0, 2), unpack=True)
+
+        print(energy, counts)
+
+        plt.semilogy()
+        plt.xlabel("Energy (MeV)")
+#            plt.ylim([0.0000000001, 0.001])
+        plt.ylabel("Counts")
+#            plt.show()
+        '''
+        plt.annotate("Cl Eff:" + str(float(Eff_net_Cl)), xy=(2.12, counts[212]), xytext=(4.44, 0.00001),
+                    arrowprops=dict(arrowstyle="->"))
+        plt.annotate("S Eff:" + str(float(Eff_net_S)), xy=(2.23, counts[223]), xytext=(2.23, 0.00001), arrowprops=dict(arrowstyle="->"))
+        '''
+
+        data = np.column_stack((energy, counts))
+    #            h.close()
+
+        plt.plot(data[10:, 0], data[10:, 1] * source_rate)  # plot data without fits
+
+
+        ### Fit peak data from table
+        df_peak_data = df_peak_data.loc[df_peak_data['Fit_peak'] == True]
+
+
+        print(df_peak_data)
+        for e in df_peak_data.index:
+            print(e)
+            line = df_peak_data.loc[e]
+            print(line)
+            print()
+
+
+            peak = int(line['Peak']*100)
+            left_marker = int(line['Left_marker'])
+            right_marker = int(line['Right_marker'])
+
+            #obsolete fitting
+            '''
+            peak_fit = Gauss_fitting.area_gauss_fit(self, data[H_peak - spread_H + i:H_peak + spread_H - i, 0],
+                                        data[H_peak - spread_H + i:H_peak + spread_H - i, 1]
+                                        * source_rate)
+            '''
+
+            # new fitting
+            print(data[peak - left_marker:peak + right_marker, 0])
+            print(data[peak - left_marker:peak + right_marker, 1])
+            peak_area = Gauss_fitting.area_gauss_fit(self, data[peak - left_marker:peak + right_marker, 0],
+                                        data[peak - left_marker:peak + right_marker, 1] * source_rate)
+
+
+            df_peak_data.loc[e, 'Area_net'] = peak_area[0] # function result under [0] stands for area
+
+        df_peak_data.to_csv('report.csv')
+
+
+        """
+        # ----- BEGIN PROMPT
+        for i in np.arange(1): # wpisz tu później 3
+            # spread for LaBr3
+            #                spread_Si = 12
+            #                spread_H = 7
+            #                spread_C = 14
+            #                spread_O = 14
+            #                print(i)
+
+            # Total = Gauss_fitting.total_spect(data[10:, 0], data[10:, 1] * source_rate)  # plot data without fits
+            # Total = plt.plot(data[10:, 0], data[10:, 1] * source_rate)  # plot data without fits
+            # Si = Gauss_fitting.area_gauss_fit(self, data[Si_peak - spread_Si + i:Si_peak + spread_Si - i, 0],
+            #                           data[Si_peak - spread_Si + i:Si_peak + spread_Si - i, 1]
+            #                           * source_rate)
+
+            # Cl_low = Gauss_fitting.area_gauss_fit(self, data[Cl_peak_low - spread_Cl_low + i:Cl_peak_low + spread_Cl_low - i, 0],
+            #                        data[Cl_peak_low - spread_Cl_low + i:Cl_peak_low + spread_Cl_low - i, 1]
+            #                        * source_rate)
+
+            #S = Gauss_fitting.area_gauss_fit(self, data[S_peak - spread_S + i:S_peak + spread_S - i+3, 0],
+            #                        data[S_peak - spread_S + i:S_peak + spread_S - i+3, 1]
+            #                        * source_rate)
+
+            H = Gauss_fitting.area_gauss_fit(self, data[H_peak - spread_H + i:H_peak + spread_H - i, 0],
+                                        data[H_peak - spread_H + i:H_peak + spread_H - i, 1]
+                                        * source_rate)
+            # Pb208 = area_gauss_fit(data[xl_Pb208_marker:xr_Pb208_marker, 0], data[xl_Pb208_marker:xr_Pb208_marker, 1] * n_flux_multiplier)
+            #                Cl = area_gauss_fit(data[xl_Cl_marker:xr_Cl_marker, 0], data[xl_Cl_marker:xr_Cl_marker, 1] * n_flux_multiplier)
+
+            C = Gauss_fitting.area_gauss_fit(self, data[C_peak - spread_C + i:C_peak + spread_C - i+1, 0],
+                                        data[C_peak - spread_C + i:C_peak + spread_C - i+1, 1]
+                                        * source_rate)
+
+            O = Gauss_fitting.area_gauss_fit(self, data[O_peak - spread_O + i:O_peak + spread_O - i, 0],
+                                        data[O_peak - spread_O + i:O_peak + spread_O - i, 1]
+                                        * source_rate)
+
+            #Cl = Gauss_fitting.area_gauss_fit(self, data[Cl_peak - spread_Cl + i:Cl_peak + spread_Cl - i, 0],
+            #                            data[Cl_peak - spread_Cl + i:Cl_peak + spread_Cl - i, 1]
+            #                            * source_rate)
+
+
+#                Cl_low_to_O = np.round(Cl_low[0] / O[0], 4)
+#                S_to_O = np.round(S[0] / O[0], 4)
+#                C_to_O = np.round(C[0] / O[0], 4)
+            C_to_O = np.round(C[0] / O[0], 4)
+
+#            plt.text(6, 3E7, "Peak@2.23: "+str(int(peak_H)) + "\n" + "Peak@5.91: "+str(int(peak_Cl)) + "\n" + "Counts 0.5-10 MeV: "+str(int(data_sum)))
+#            plt.title('Ratios: Cl_low/O: ' + str(Cl_low_to_O)  + ' S/O: ' + str(S_to_O) + ' C/O: ' + str(C_to_O))
+        plt.title('Ratios: C/O: ' + str(C_to_O))
+
+        print("File_name:" + file_name)
+        print("Area net summary:")
+        # print("Peak Si: " + str(Si[0]))
+#            print("Peak Cl_low: " + str(Cl_low[0]))
+#            print("Peak S: " + str(S[0]))
+        print("Peak H: " + str(H[0]))
+        print("Peak C: " + str(C[0]))
+        print("Peak O: " + str(O[0]))
+
+        print("Ratios:"+'\n')
+#            print("Cl_low/O: " + str(Cl_low_to_O))
+#            print("S/O: " + str(S_to_O))
+        print("C/O: " + str(C_to_O) + '\n')
+
+# ----- END PROMPT
+        """
+        '''
+# ----- BEGIN DELAYED
+        for i in np.arange(1):  # wpisz tu później 3
+
+            # Total = Gauss_fitting.total_spect(data[10:, 0], data[10:, 1] * source_rate)  # plot data without fits
+            Total = plt.plot(data[10:, 0], data[10:, 1] * source_rate)  # plot data without fits
+            #               Si = area_gauss_fit(data[xl_Si_marker:xr_Si_marker, 0],
+            #                              data[xl_Si_marker:xr_Si_marker, 1] * n_flux_multiplier)
+
+            #           H = area_gauss_fit(data[xl_H_marker:xr_H_marker, 0], data[xl_H_marker:xr_H_marker, 1] * n_flux_multiplier)
+
+
+            #H = Gauss_fitting.area_gauss_fit(self, data[H_peak - spread_H+2 + i:H_peak + spread_H - i, 0],
+            #                        data[H_peak - spread_H+2 + i:H_peak + spread_H - i, 1]
+            #                        * source_rate)
+
+            
+            H = Gauss_fitting.area_gauss_fit(self, data[H_peak - spread_H+2 + i:H_peak + spread_H - i, 0],
+                                    data[H_peak - spread_H+2 + i:H_peak + spread_H - i, 1]
+                                    * source_rate)
+
+            # Pb208 = area_gauss_fit(data[xl_Pb208_marker:xr_Pb208_marker, 0], data[xl_Pb208_marker:xr_Pb208_marker, 1] * n_flux_multiplier)
+            #                Cl = area_gauss_fit(data[xl_Cl_marker:xr_Cl_marker, 0], data[xl_Cl_marker:xr_Cl_marker, 1] * n_flux_multiplier)
+
+
+
+            Cl = Gauss_fitting.area_gauss_fit(self, data[Cl_peak - spread_Cl + i:Cl_peak + spread_Cl - i, 0],
+                                        data[Cl_peak - spread_Cl + i:Cl_peak + spread_Cl - i, 1]
+                                        * source_rate)
+            
+            
+            # Cu = Gauss_fitting.area_gauss_fit(self, data[Cu_peak - spread_Cu + i:Cu_peak + spread_Cu - i, 0],
+            #                            data[Cu_peak - spread_Cu + i:Cu_peak + spread_Cu - i, 1]
+            #                            * source_rate)
+        #     N = [1.0, 1.0]
+            
+            
+            
+            #N = Gauss_fitting.area_gauss_fit(self, data[N_peak - spread_N + i:N_peak + spread_N - i, 0],
+            #                            data[N_peak - spread_N + i:N_peak + spread_N - i, 1]
+            #                            * source_rate)
+            
+
+            N_range = data[-100:-1]
+            print(N_range)
+            N_range = sum(data[-100:-1, 1])  # from 10 - 11 MeV
+            N_range = N_range * source_rate
+            print(N_range)
+            
+#            Cu_to_H = np.round(float(Cu[0]) / float(H[0]), 4)
+            Cl_to_H = np.round(float(Cl[0]) / float(H[0]), 4)
+            # N_to_Cl = np.round(float(N[0])/float(Cl[0]), 4)
+#                N_to_H = np.round(float(N[0])/float(H[0]), 4)  # for peak integral calculation
+            N_to_H = np.round(float(N_range)/float(H[0]), 7)  # for energy range calculation
+
+
+#            plt.title('Ratios: Cl/H: ' + str(Cl_to_H))
+            plt.title('Ratios: Cl/H: ' + str(Cl_to_H) + ', Ratios: N/H: ' + str(N_to_H))
+#            plt.title('Ratios: Cl/H: ' + str(Cl_to_H) + " " + 'N/Cl: ' + str(N_to_Cl))
+#            plt.title('Ratios: N/H: ' + str(N_to_H))
+
+        print("File_name:" + file_name)
+        print("Area net summary:")
+        print("Peak H: " + str(H[0]))
+        #print("Peak Cu: " + str(Cu[0]))
+        print("Peak Cl: " + str(Cl[0]))
+#            print("Peak N: " + str(N[0]))
+        print("N range: " + str(N_range))
+        print("Ratios:" + '\n')
+        #print("Cu/H: " + str(Cu_to_H))
+        print("Cl/H: " + str(Cl_to_H))
+        # print("Cl/N: " + str(N_to_Cl))
+        print("N/H: " + str(N_to_H))
+        
+        # ----- END DELAYED
+        '''
+
+        
+        """
+#               --- Begin others ---
+        for i in np.arange(1):
+            Th = Gauss_fitting.area_gauss_fit(self, data[Th_peak - spread_Th + 2 + i:Th_peak + spread_Th - i, 0],
+                                    data[Th_peak - spread_Th + 2 + i:Th_peak + spread_Th - i, 1]
+                                    * source_rate)
+
+        print("Peak Th: " + str(Th[0]))
+        """
+        
+
+    # plt.show() # jeśli potrzebujemy do wizualizacji
+        plt.ylim(0.01, np.max((df.loc[10:, "Counts"])*source_rate*1.5))
+        plt.savefig(output_file_destination.replace(".out", "_graph.png"),
+                    dpi=None, facecolor='w', edgecolor='w',
+                    orientation='portrait', papertype=None, format='png',
+                    transparent=False, bbox_inches=None, pad_inches=0.1) # frameon=None
+
+
+        plt.close()
+
+        #            plt.show()
+        energy = [0] * len(energy)
+        counts = [0] * len(energy)
+#        except:
+        #print("Błąd otwarcia pliku!")
+    
+
+        print("Processing finished")
+    # plt.close()
+        return cell_name
+
+    # ------------------------------
+    #  --- PULSE HEIGHT ANALYSIS ---
+    # ------------------------------
+
+    def Analyse_File_F8_old(self, file_path, cell_name, source_rate='1E8*1', f4_integral=1):
+        # c = My_Files() #instancja klasy My_Files
         df_peak_data = self.read_json_peak_data()
         print(df_peak_data)
 
@@ -533,12 +917,12 @@ class My_Files(Gauss_fitting):
     def Analyse_File_F4(self, file_path, cell_name, data_column, source_rate='1E8*1'):
 
 #        cell_name = 'cell  2'
-        c = My_Files()
+        # c = My_Files()
     #    listoffiles = self.Open_file_F4(cell_name)
 
         source_rate = Gauss_fitting.SR_CONVERT(self, source_rate)
 
-        listoffiles = c.Open_file_F4()
+        listoffiles = self.Open_file_F4()
         
         source_rate = float(source_rate)
         print(source_rate)
@@ -875,7 +1259,7 @@ class My_Files(Gauss_fitting):
   
 #        input_ph_file_path = self.Analyse_File_F8()[:] #z funkcji wysłuskuje dwa parametry, lista krotek
        # print(data_new)
-        input_ph_file_path = My_Files.Analyse_File_F8(self)[0]  # to działa dla F4xF8!!
+        input_ph_file_path = self.Analyse_File_F8(self)[0]  # to działa dla F4xF8!!
         # tylko trzeba otworzyć plik po analizie
         
    #     directory_path = os.path.dirname(str(input_ph_file_path[1][0]))  # directory path

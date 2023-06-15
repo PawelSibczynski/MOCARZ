@@ -129,7 +129,7 @@ class App(QMainWindow): #QMainWindow
         super().__init__()
         self.left = 10
         self.top = 10
-        self.title = 'MOCARZ - MOnte CARlo analyZer v0.11'
+        self.title = 'MOCARZ - MOnte CARlo analyZer v0.2'
         self.width = 1024
         self.height = 768
         self.initUI()
@@ -177,7 +177,7 @@ class App(QMainWindow): #QMainWindow
         lbl_particle_count = QLabel('Particle multiplication.')
         self.ln_particle_count = QLineEdit('1E8*100')
         lbl_data_column = QLabel('Data column selection')
-        ln_data_column = QLineEdit('5')
+        self.ln_data_column = QLineEdit('5')
         lbl_f4_integral = QLabel('F4 Integral.')
         self.ln_f4_integral = QLineEdit('1')
         ln_log = QTextEdit('Info logger')
@@ -215,7 +215,7 @@ class App(QMainWindow): #QMainWindow
         lyot_settings.addWidget(lbl_particle_count)
         lyot_settings.addWidget(self.ln_particle_count)
         lyot_settings.addWidget(lbl_data_column)
-        lyot_settings.addWidget(ln_data_column)
+        lyot_settings.addWidget(self.ln_data_column)
         lyot_settings.addWidget(lbl_f4_integral)
         lyot_settings.addWidget(self.ln_f4_integral)
 
@@ -316,9 +316,9 @@ class App(QMainWindow): #QMainWindow
             print(f)
             self.PROGRESS(no_of_files/len(files)*100)
             no_of_files = no_of_files + 1
-            self.dataProcessing.Analyse_File_F4(f, cell_name=self.window.ln_cell.text(),
-                                        source_rate=self.window.ln_particle_count.text(),
-                                        data_column=float(self.window.ln_data_column.text()))
+            self.dataProcessing.Analyse_File_F4(f, cell_name=self.ln_cell.text(),
+                                        source_rate=self.ln_particle_count.text(),
+                                        data_column=float(self.ln_data_column.text()))
 
 
     def OpenFileDialog(self):
