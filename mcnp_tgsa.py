@@ -349,7 +349,7 @@ class My_Files(Gauss_fitting):
 
             df_peak_data.loc[e, 'Area_net'] = peak_area[0] # function result under [0] stands for area
 
-        df_peak_data.to_csv('report.csv')
+        df_peak_data.to_csv(output_file_destination.replace(".out", "_report.csv"))
 
 
         """
